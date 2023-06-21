@@ -1,39 +1,58 @@
 ﻿@page "/todo"
 @using BlazorTodo.Shared
+@inject HttpClient http
 
 <PageTitle>Todo</PageTitle>
 
-<h3>Todo (@todos.Count(todo => todo.IsDone))</h3>
+<h3>Todo</h3>
 
-<ul>
-    @foreach (var todo in todos)
-    {
-        <li>
-            <input type="checkbox" @bind="todo.IsDone" />
-            <input @bind="todo.Title" />
-            <button @onclick="() => DeleteTodo(todo)">Delete</button>
-        </li>
-    }
-</ul>
+@if (todos != null)
+{
+    <ul>
+        @foreach (var todo in todos)
+        {
+            <li>
+                <input type="checkbox" @bind="todo.IsDone" />
+                <input @bind="todo.Title" />
+                @*<button @onclick="() => DeleteTodo(todo)">Delete</button>*@
+            </li>
+        }
+    </ul>
+}
 
-<input placeholder="Something todo" @bind="newTodo" />
-<button @onclick="AddTodo">Add todo</button>
+
+
+<input placeholder="Something todo" @bind="todo.Title" />
+<button @onclick="CreateTodo">Add todo</button>
 
 @code {
-    private string? newTodo;
-    private List<TodoItem> todos = new();
+    TodoItem todo = new();
 
-    private void AddTodo()
+    public async Task CreateTodo()
     {
-        if (!string.IsNullOrWhiteSpace(newTodo))
+        todo.Id = Guid.NewGuid().ToString();
+        todo.Pk = todo.Id;
+        var httpResult = await http.PostAsJsonAsync<TodoItem>($"api/Todo/CreateTodo", todo);
+
+        if (httpResult.IsSuccessStatusCode)
         {
-            todos.Add(new TodoItem { Title = newTodo });
-            newTodo = string.Empty;
+            Console.WriteLine("SUCCESS");
+        }
+        else
+        {
+            Console.WriteLine(httpResult.ToString());    
         }
     }
 
-    private void DeleteTodo(TodoItem todo)
+    private TodoItem[]? todos;
+
+    protected override async Task OnInitializedAsync()
     {
-        todos.Remove(todo);
+        todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
     }
+
+    //private void DeleteTodo(TodoItem todo)
+    //{
+    //    todos.Remove(todo);
+    //}
 }
