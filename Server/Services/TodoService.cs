@@ -1,7 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos;
 using BlazorTodo.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorTodo.Server.Services
 {
@@ -28,7 +27,7 @@ namespace BlazorTodo.Server.Services
         // Read
         public async Task<List<TodoItem>> GetAllTodoAsync()
         {
-             return await _container.GetModelLinqQueryable<TodoItem>().GetListFromFeedIteratorAsync();
+            return await _container.GetModelLinqQueryable<TodoItem>().GetListFromFeedIteratorAsync();
         }
 
         // Update
