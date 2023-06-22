@@ -1,5 +1,4 @@
-﻿using BlazorTodo.Client.Pages;
-using BlazorTodo.Server.Services;
+﻿using BlazorTodo.Server.Services;
 using BlazorTodo.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +26,20 @@ namespace BlazorTodo.Server.Controllers
         public async Task<ActionResult<TodoItem>> CreateTodo(TodoItem todo)
         {
             await _todoService.CreateTodoAsync(todo);
+            return Ok();
+        }
+
+        [HttpPatch]
+        public async Task<ActionResult<TodoItem>> UpdateTodo(TodoItem todo)
+        {
+            await _todoService.UpdateTodoAsync(todo);
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<TodoItem>> DeleteTodo(TodoItem todo)
+        {
+            await _todoService.DeleteTodoItemAsync(todo);
             return Ok();
         }
     }

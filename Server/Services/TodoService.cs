@@ -18,8 +18,8 @@ namespace BlazorTodo.Server.Services
         // Create
         public async Task CreateTodoAsync(TodoItem todo)
         {
-            //todo.Id = Guid.NewGuid().ToString();
-            //todo.Pk = todo.Id;
+            todo.Id = Guid.NewGuid().ToString();
+            todo.Pk = todo.Id;
 
             await _container.AddModel<TodoItem>(todo);
         }
