@@ -16,25 +16,71 @@
     }
 </ul>
 
-<input placeholder="Something todo" @bind="newTodo" />
-<button @onclick="AddTodo">Add todo</button>
+<input placeholder="Something todo" @bind="@newTodo.Title" />
+<button @onclick="CreateTodo">Add todo</button>
 
 
 @code {
-    private string? newTodo;
-    private List<TodoItem> todos = new();
+    private TodoItem newTodo = new();
+    private TodoItem[]? todos;
+    TodoItem todo = new();
 
     private void AddTodo()
     {
-        if (!string.IsNullOrWhiteSpace(newTodo))
+        var httpResult = await http.PostAsJsonAsync<TodoItem>("api/Todo/CreateTodo", newTodo);
+
+        if (httpResult.IsSuccessStatusCode)
         {
-            todos.Add(new TodoItem { Title = newTodo });
-            newTodo = string.Empty;
+            Console.WriteLine("SUCCESS");
+            newTodo = new();
         }
+        else
+        {
+            Console.WriteLine("FAIL");    
+        }
+
+        await GetAllTodo();
     }
 
     private void DeleteTodo(TodoItem todo)
     {
-        todos.Remove(todo);
+        await GetAllTodo();
+    }
+
+    public async Task UpdateTodo(TodoItem todo)
+    {
+        var updateTodo = await http.PatchAsJsonAsync<TodoItem>("api/Todo/UpdateTodo", todo);
+
+        if (updateTodo.IsSuccessStatusCode)
+        {
+            Console.WriteLine("SUCCESS");
+        }
+        else
+        {
+            Console.WriteLine("FAIL");
+        }
+        
+        await GetAllTodo();
+    }
+
+    public async Task DeleteTodo(TodoItem todo)
+    {
+        var deleteTodo = await http.PostAsJsonAsync<TodoItem>("api/Todo/DeleteTodo", todo);
+
+        if (deleteTodo.IsSuccessStatusCode)
+        {
+            Console.WriteLine("SUCCESS");
+        }
+        else
+        {
+            Console.WriteLine("FAIL");
+        }
+
+        await GetAllTodo();
+    }
+
+    public async Task GetAllTodo()
+    {
+        todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
     }
 }
