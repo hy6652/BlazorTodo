@@ -23,8 +23,6 @@
 <input placeholder="Something todo" @bind="@newTodo.Title" />
 <button @onclick="CreateTodo">Add todo</button>
 
-
-
 @code {
     private TodoItem newTodo = new();
     private TodoItem[]? todos;
