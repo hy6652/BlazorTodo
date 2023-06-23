@@ -21,40 +21,41 @@
     </ul>
 }
 
-<input placeholder="Something todo" @bind="newTodo" />
+<input placeholder="Something todo" @bind="@newTodo.Title" />
 <button @onclick="CreateTodo">Add todo</button>
 
 
 @code {
-    private string? newTodo;
+    private TodoItem newTodo = new();
     private TodoItem[]? todos;
     TodoItem todo = new();
 
     public async Task CreateTodo()
     {
-        todo.Title = newTodo;
-        var httpResult = await http.PostAsJsonAsync<TodoItem>("api/Todo/CreateTodo", todo);
+        var httpResult = await http.PostAsJsonAsync<TodoItem>("api/Todo/CreateTodo", newTodo);
 
         if (httpResult.IsSuccessStatusCode)
         {
             Console.WriteLine("SUCCESS");
-            newTodo = string.Empty;
+            newTodo = new();
         }
         else
         {
             Console.WriteLine("FAIL");    
         }
+
+        await GetAllTodo();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
+        await GetAllTodo();
     }
 
     public async Task UpdateTodo(TodoItem todo)
     {
         var updateTodo = await http.PatchAsJsonAsync<TodoItem>("api/Todo/UpdateTodo", todo);
-        
+
         if (updateTodo.IsSuccessStatusCode)
         {
             Console.WriteLine("SUCCESS");
@@ -63,6 +64,8 @@
         {
             Console.WriteLine("FAIL");
         }
+        
+        await GetAllTodo();
     }
 
     public async Task DeleteTodo(TodoItem todo)
@@ -77,5 +80,12 @@
         {
             Console.WriteLine("FAIL");
         }
+
+        await GetAllTodo();
+    }
+
+    public async Task GetAllTodo()
+    {
+        todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
     }
 }
