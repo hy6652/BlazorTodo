@@ -1,6 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using BlazorTodo.Shared;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorTodo.Server.Services
 {
@@ -27,7 +28,7 @@ namespace BlazorTodo.Server.Services
         // Read
         public async Task<List<TodoItem>> GetAllTodoAsync()
         {
-            return await _container.GetModelLinqQueryable<TodoItem>().GetListFromFeedIteratorAsync();
+             return await _container.GetModelLinqQueryable<TodoItem>().GetListFromFeedIteratorAsync();
         }
 
         // Update
@@ -40,6 +41,16 @@ namespace BlazorTodo.Server.Services
         public async Task DeleteTodoItemAsync(TodoItem todo)
         {
             await _container.RemoveModel<TodoItem>(todo.Id, todo.Pk);
+        }
+
+        public async Task<List<TodoItem>> GetDateFilteredTodo(DateTime startDate, DateTime endDate, bool isDone)
+        {
+            return await _container.FilterTodo<TodoItem>(startDate, endDate, isDone).GetListFromFeedIteratorAsync();
+        }
+
+        public async Task<List<TodoItem>> GetTodoFilteredByTitle(string title)
+        {
+            return await _container.FilterTodoByTitle<TodoItem>(title).GetListFromFeedIteratorAsync();
         }
     }
 }

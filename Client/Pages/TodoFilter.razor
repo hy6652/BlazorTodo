@@ -1,0 +1,59 @@
+﻿@page "/todoFilter"
+@using BlazorTodo.Shared
+@inject HttpClient http
+
+<h1>Todo Filter</h1>
+
+<input type="date" @bind=startDate />
+<input type="date" @bind=endDate />
+<input type="checkbox" @bind=isDone />
+<button @onclick="GetFilteredTodo">Click</button>
+
+@if (todos != null)
+{
+    @foreach (var todo in todos)
+    {
+        <ul>
+            <li>
+                <strong>Title</strong>: @todo.Title 
+                <strong>Created Time</strong>: @todo.CreatedTime.ToString("yyyy-MM-dd")
+            </li>
+        </ul>
+    }
+}
+
+<p><h3>Title Filter</h3></p>
+<input type="text" @bind=stringForTitle placeholder="title filtering" />
+<button @onclick="GetTodoFilteredByTitle">Click</button>
+
+@if (result != null)
+{
+    @foreach (var todo in result)
+    {
+        <ul>
+            <li>
+                <strong>Title</strong>: @todo.Title
+                <strong>Created Time</strong>: @todo.CreatedTime.ToString("yyyy-MM-dd")
+            </li>
+        </ul>
+    }
+}
+
+@code {
+    private DateTime startDate = DateTime.Now.AddDays(-1);
+    private DateTime endDate = DateTime.Now;
+    private TodoItem[]? todos;
+    private TodoItem[]? result;
+    private bool isDone = false;
+    private string? stringForTitle;
+
+    public async Task GetFilteredTodo()
+    {
+        todos = await http.GetFromJsonAsync<TodoItem[]>($"api/todo/GetFilteredTodo?startDate={startDate}&endDate={endDate}&isDone={isDone}");
+    }
+
+    public async Task GetTodoFilteredByTitle()
+    {
+        result = await http.GetFromJsonAsync<TodoItem[]>($"api/Todo/GetTodoFilteredByTitle?title={stringForTitle}");
+    }
+}

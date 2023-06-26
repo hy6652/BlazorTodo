@@ -42,5 +42,17 @@ namespace BlazorTodo.Server.Controllers
             await _todoService.DeleteTodoItemAsync(todo);
             return Ok();
         }
+
+        [HttpGet]
+        public async Task<ActionResult<List<TodoItem>>> GetFilteredTodo(DateTime startDate, DateTime endDate, bool isDone)
+        {
+            return await _todoService.GetDateFilteredTodo(startDate, endDate, isDone);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<TodoItem>>> GetTodoFilteredByTitle(string title)
+        {
+            return await _todoService.GetTodoFilteredByTitle(title);
+        }
     }
 }
