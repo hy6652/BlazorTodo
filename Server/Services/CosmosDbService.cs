@@ -110,7 +110,6 @@ namespace BlazorTodo.Server.Services
         public static IQueryable<T> OfCosmosItemType<T>(this IQueryable<T> query) where T : CosmosModelBase
         {
             var typeName = query.ElementType.Name;
-            Console.WriteLine(typeName);
             return query.Where(x => x.ClassType == "Todo");
         }
 
@@ -135,6 +134,22 @@ namespace BlazorTodo.Server.Services
                 }
             }
             return result;
+        }
+
+        public static IQueryable<T> FilterTodo<T>(this Container container, DateTime startDate, DateTime endDate, bool isDone) where T : TodoItem
+        {
+            DateTime endDatePlusOne = endDate.AddDays(1);
+            
+            return container.GetItemLinqQueryable<T>()
+                .Where(x => x.CreatedTime >= startDate && x.CreatedTime <= endDatePlusOne && x.IsDone == isDone)
+                .AsQueryable();
+        }
+
+        public static IQueryable<T> FilterTodoByTitle<T>(this Container container, string title) where T : TodoItem
+        {
+            return container.GetItemLinqQueryable<T>()
+                .Where(x => x.Title.Contains(title, StringComparison.OrdinalIgnoreCase))
+                .AsQueryable();
         }
     }
 }
