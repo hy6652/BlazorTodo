@@ -1,10 +1,18 @@
 ﻿@page "/todo"
 @using BlazorTodo.Shared
+@using System.Net.Http.Headers
+@using System.Text;
 @inject HttpClient http
 
 <PageTitle>Todo</PageTitle>
 
-<h3>Todo (@todos.Count(todo => todo.IsDone))</h3>
+<h3>Todo</h3>
+
+<p>
+    <input placeholder="Something todo" @bind="@newTodo.Title" />
+    <InputFile OnChange="CreateTodoWithImage"></InputFile>
+    <button @onclick="UploadImage">Add todo</button>
+</p>
 
 @if (todos != null)
 {
@@ -14,6 +22,14 @@
             <li>
                 <input type="checkbox" @bind="todo.IsDone" />
                 <input @bind="todo.Title" />
+                @if (todo.FileUrl != string.Empty)
+                {
+                    <img src="@todo.FileUrl" height="100" width="200">
+                }
+                else
+                {
+                    <strong>No Image</strong>
+                }
                 <button @onclick="() => DeleteTodo(todo)">Delete</button>
                 <button @onclick="() => UpdateTodo(todo)">Edit</button>
             </li>
@@ -21,15 +37,15 @@
     </ul>
 }
 
-<input placeholder="Something todo" @bind="@newTodo.Title" />
-<button @onclick="CreateTodo">Add todo</button>
-
 @code {
     private TodoItem newTodo = new();
     private TodoItem[]? todos;
     TodoItem todo = new();
+    private Stream stream;
+    private string fileName;
 
-    private void AddTodo()
+    // Create todo without an image
+    public async Task CreateTodo()
     {
         var httpResult = await http.PostAsJsonAsync<TodoItem>("api/Todo/CreateTodo", newTodo);
 
@@ -40,7 +56,7 @@
         }
         else
         {
-            Console.WriteLine("FAIL");    
+            Console.WriteLine("FAIL");
         }
 
         await GetAllTodo();
@@ -63,7 +79,7 @@
         {
             Console.WriteLine("FAIL");
         }
-        
+
         await GetAllTodo();
     }
 
@@ -87,4 +103,64 @@
     {
         todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
     }
-}
+
+    // Upload an image without todo
+    public async Task FileUpload(InputFileChangeEventArgs e)
+    {
+        var content = new MultipartFormDataContent();
+
+        var stream = e.File.OpenReadStream();
+        var fileNmame = e.File.Name;
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+        content.Add(
+            content: new StreamContent(stream),
+            name: "file", 
+            fileName: fileNmame);
+
+        var response = await http.PostAsync("api/File/UploadImage", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("FAIL");
+        }
+        else
+        {
+            Console.WriteLine("SUCCESS");
+        }
+    }
+
+    // Create todo and upload an image with CreateTodoWithImage and UploadImage at the same time
+    public void CreateTodoWithImage(InputFileChangeEventArgs e)
+    {
+        stream = e.File.OpenReadStream();
+        fileName = e.File.Name;
+    }
+
+    public async Task UploadImage()
+    {
+        var payload = new
+        {
+            Title = newTodo.Title
+        };
+
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(stream), "file", fileName},
+            { new StringContent(payload.Title), "todo.Title"}
+        };
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+        var response = await http.PostAsync("api/Todo/CreateTodoWithImage", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("FAIL");
+        }
+        else
+        {
+            Console.WriteLine("SUCCESS");
+            newTodo = new();
+        }
+
+        await GetAllTodo();
+    }
+} 

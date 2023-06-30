@@ -20,6 +20,11 @@ namespace BlazorTodo.Server.Services
             todo.Id = Guid.NewGuid().ToString();
             todo.Pk = todo.Id;
 
+            if (todo.Title == null)
+            {
+                throw new ArgumentNullException("Title Needed");
+            }
+
             await _container.AddModel<TodoItem>(todo);
         }
 

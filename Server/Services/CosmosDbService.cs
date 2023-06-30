@@ -139,7 +139,7 @@ namespace BlazorTodo.Server.Services
         public static IQueryable<T> FilterTodo<T>(this Container container, DateTime startDate, DateTime endDate, bool isDone) where T : TodoItem
         {
             DateTime endDatePlusOne = endDate.AddDays(1);
-            
+
             return container.GetItemLinqQueryable<T>()
                 .Where(x => x.CreatedTime >= startDate && x.CreatedTime <= endDatePlusOne && x.IsDone == isDone)
                 .AsQueryable();

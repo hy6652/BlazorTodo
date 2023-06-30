@@ -1,3 +1,4 @@
+using BlazorTodo.Server.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.Configure<CosmosDbServiceOptions>(builder.Configuration.GetSection("CosmosDb"));
+builder.Services.AddSingleton<CosmosDbService>();
+
+builder.Services.Configure<BlobImageServiceOptions>(builder.Configuration.GetSection("BlobServiceOptions"));
+builder.Services.AddTransient<BlobImageServiceOptions>();
+
+builder.Services.AddTransient<TodoService>();
+builder.Services.AddTransient<BlobImageService>();
 
 var app = builder.Build();
 

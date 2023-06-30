@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BlazorTodo.Shared
+﻿namespace BlazorTodo.Shared
 {
-    public class TodoItem
+    public class TodoItem : CosmosModelBase
     {
-        public string? Title { get; set; }
-        public bool IsDone { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public DateTime CreatedTime { get; set; } = DateTime.Now;
+        public bool IsDone { get; set; } = false;
+        public override string ClassType => "Todo";
+        public string FileName { get; set; } = string.Empty;
+        public string FileUrl { get; set; } = string.Empty;
     }
 }
