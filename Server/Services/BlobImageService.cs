@@ -25,16 +25,12 @@ namespace BlazorTodo.Server.Services
         private readonly BlobServiceClient client;
         private readonly string connectionString;
         private readonly string containerName;
-        private readonly string accountName;
-        private readonly string accountKey;
         private readonly BlobContainerClient blobContainer;
 
         public BlobImageService(IOptions<BlobImageServiceOptions> options)
         {
             connectionString = options.Value.ConnectionString;
             containerName = options.Value.ContainerName;
-            accountName = options.Value.AccountName;
-            accountKey = options.Value.AccountKey;
             client = new BlobServiceClient(connectionString);
             blobContainer = new BlobContainerClient(connectionString, containerName);
         }

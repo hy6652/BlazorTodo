@@ -1,0 +1,66 @@
+﻿@page "/csv"
+@inject HttpClient http
+@using BlazorTodo.Shared
+
+<h3>CSV Write</h3>
+<p><button @onclick=ClickForCSV>WRITE</button></p>
+
+<h3>CSV Read</h3>
+<p><button @onclick=ReadCSV>READ</button></p>
+
+<table> 
+    <thead>
+        <tr>
+            <th style="width: 100px">Id</th>
+            <th style="width: 150px">Movie</th>
+            <th style="width: 100px">Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (result != null)
+        {
+            @foreach (var item in result)
+            {
+                <tr>
+                    <td style="width: 100px">@item.Id</td>
+                    <td style="width: 150px">@item.Movie</td>
+                    <td style="width: 100px">@item.Rating</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private CsvModel[]? result;
+
+    public async Task ClickForCSV()
+    {
+        var records = new List<CsvModel>
+        {
+            new CsvModel { Id = 1, Movie = "Interstella", Rating = 3.5},
+            new CsvModel { Id = 2, Movie = "Pitch Perfect", Rating = 4},
+            new CsvModel { Id = 3, Movie = "Coco", Rating = 4.5},
+            new CsvModel { Id = 4, Movie = "About Time", Rating = 3},
+            new CsvModel { Id = 5, Movie = "The Godfatehr", Rating = 2.5},
+            new CsvModel { Id = 6, Movie = "Titanic", Rating = 4},
+            new CsvModel { Id = 7, Movie = "A Star Is Born", Rating = 3.5},
+            new CsvModel { Id = 8, Movie = "Pride and Prejudice", Rating = 3},
+            new CsvModel { Id = 9, Movie = "Mean Girls", Rating = 2.5},
+            new CsvModel { Id = 10, Movie = "Spider Man", Rating = 2}
+        };
+
+        var data = JsonContent.Create(records);
+        var result = await http.PostAsync("api/Csv/WriteCsv", data);
+
+        if (result.IsSuccessStatusCode)
+        {
+            Console.WriteLine(result);
+        }
+    }
+
+    public async Task ReadCSV()
+    {
+        result = await http.GetFromJsonAsync<CsvModel[]>("api/Csv/ReadCsv");
+    }
+}

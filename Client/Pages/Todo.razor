@@ -25,14 +25,6 @@
             <li>
                 <input type="checkbox" @bind="todo.IsDone" />
                 <input @bind="todo.Title" />
-                @if (todo.FileUrl != string.Empty)
-                {
-                    <img src="@todo.FileUrl" height="100" width="200">
-                }
-                else
-                {
-                    <strong>No Image</strong>
-                }
                 <button @onclick="() => DeleteTodo(todo)">Delete</button>
                 <button @onclick="() => UpdateTodo(todo)">Edit</button>
             </li>
@@ -44,7 +36,7 @@
 {
     foreach (var image in imageData)
     {
-        <img src=@image height="100" width="200">
+        <img src="@image" height="100" width="200">
     }
 }
 
@@ -119,7 +111,7 @@
 
         foreach (var todo in todos)
         {
-            SasUrlForBlob(todo.FileName);
+            result = await SasUrlForBlob(todo.FileName);
             imageData.Add(result);
         }
         Console.WriteLine($"image data : {imageData.Count()}");
@@ -186,20 +178,18 @@
     }
 
     // Get image url + sas token
-    public async Task SasUrlForBlob(string blobName)
+    public async Task<string> SasUrlForBlob(string blobName)
     {
         blob.blobName = blobName;
         var app = await http.PostAsJsonAsync<blobClass>("api/File/CreateImageSas", blob);
 
         if(app.IsSuccessStatusCode)
         {
-            result = (app.Content.ReadAsStringAsync()).Result;
-            Console.WriteLine(result);
+            return (app.Content.ReadAsStringAsync()).Result;
         }
         else
         {
-            Debug.WriteLine("HERE");
+            return string.Empty;
         }
-
     }
 } 

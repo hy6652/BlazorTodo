@@ -16,6 +16,7 @@ builder.Services.AddTransient<BlobImageServiceOptions>();
 
 builder.Services.AddTransient<TodoService>();
 builder.Services.AddTransient<BlobImageService>();
+builder.Services.AddTransient<CsvService>();
 
 var app = builder.Build();
 
