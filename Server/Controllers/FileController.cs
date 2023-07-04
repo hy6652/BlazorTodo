@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BlazorTodo.Server.Services;
 using BlazorTodo.Shared;
+using System.Diagnostics;
 
-// TEST Controller
 namespace BlazorTodo.Server.Controllers
 {
     [Route("api/[controller]/[action]")]
@@ -30,6 +30,15 @@ namespace BlazorTodo.Server.Controllers
         {
             var result = await _blobService.GetImages();
             return result;
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult<string>> CreateImageSas(blobClass blob)
+        {
+            var blobName = blob.blobName;
+            var sasUri =  await _blobService.CreateServiceSasForBlob(blobName);
+            return sasUri.AbsoluteUri;
         }
     }
 }

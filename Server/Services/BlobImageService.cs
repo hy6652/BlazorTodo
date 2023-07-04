@@ -1,8 +1,8 @@
-﻿using Azure;
-using Azure.Storage;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using BlazorTodo.Shared;
 using Microsoft.Extensions.Options;
+using Azure.Storage.Sas;
+using System.Diagnostics;
 
 namespace BlazorTodo.Server.Services
 {
@@ -16,6 +16,8 @@ namespace BlazorTodo.Server.Services
     {
         public string? ConnectionString { get; set; }
         public string? ContainerName { get; set; }
+        public string? AccountName { get; set; }
+        public string? AccountKey { get; set; }
     }
 
     public class BlobImageService
@@ -23,12 +25,16 @@ namespace BlazorTodo.Server.Services
         private readonly BlobServiceClient client;
         private readonly string connectionString;
         private readonly string containerName;
+        private readonly string accountName;
+        private readonly string accountKey;
         private readonly BlobContainerClient blobContainer;
 
         public BlobImageService(IOptions<BlobImageServiceOptions> options)
         {
             connectionString = options.Value.ConnectionString;
             containerName = options.Value.ContainerName;
+            accountName = options.Value.AccountName;
+            accountKey = options.Value.AccountKey;
             client = new BlobServiceClient(connectionString);
             blobContainer = new BlobContainerClient(connectionString, containerName);
         }
@@ -53,7 +59,6 @@ namespace BlazorTodo.Server.Services
         {
             var blobClient = client.GetBlobContainerClient(containerName).GetBlobClient(fileName);
             await blobClient.DeleteAsync();
-
         }
 
         // 사용 안함
@@ -73,6 +78,43 @@ namespace BlazorTodo.Server.Services
             }
 
             return result;
+        }
+
+        // Blob Service SAS
+        public async Task<Uri> CreateServiceSasForBlob(string blobName, string storedPolicyName = null)
+        {
+            var containerClient = client.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(blobName);
+
+            if (blobClient.CanGenerateSasUri)
+            {
+                BlobSasBuilder sasBuilder = new BlobSasBuilder()
+                {
+                    BlobContainerName = containerName,
+                    Resource = "b",
+                    BlobName = blobClient.Name
+                };
+
+                if (storedPolicyName == null)
+                {
+                    sasBuilder.ExpiresOn = DateTimeOffset.UtcNow.AddDays(1);
+                    sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write);
+                }
+                else
+                {
+                    sasBuilder.Identifier = storedPolicyName;
+                }
+
+                Uri sasUri = blobClient.GenerateSasUri(sasBuilder);
+                return sasUri;
+            }
+            else
+            {
+                Console.WriteLine(@"BlobContainerClient must be authorized with Shared Key 
+                          credentials to create a service SAS.");
+
+                return new Uri("");
+            }
         }
     }
 }

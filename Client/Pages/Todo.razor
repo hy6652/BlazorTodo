@@ -3,6 +3,9 @@
 @using System.Net.Http.Headers
 @using System.Text;
 @inject HttpClient http
+@using Newtonsoft.Json
+@using System.Diagnostics
+@using System.Net.Mime;
 
 <PageTitle>Todo</PageTitle>
 
@@ -37,12 +40,23 @@
     </ul>
 }
 
+@if (imageData != null)
+{
+    foreach (var image in imageData)
+    {
+        <img src=@image height="100" width="200">
+    }
+}
+
 @code {
     private TodoItem newTodo = new();
     private TodoItem[]? todos;
     TodoItem todo = new();
     private Stream stream;
     private string fileName;
+    blobClass blob = new();
+    private string? result;
+    private List<string> imageData = new();
 
     // Create todo without an image
     public async Task CreateTodo()
@@ -102,6 +116,13 @@
     public async Task GetAllTodo()
     {
         todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
+
+        foreach (var todo in todos)
+        {
+            SasUrlForBlob(todo.FileName);
+            imageData.Add(result);
+        }
+        Console.WriteLine($"image data : {imageData.Count()}");
     }
 
     // Upload an image without todo
@@ -162,5 +183,23 @@
         }
 
         await GetAllTodo();
+    }
+
+    // Get image url + sas token
+    public async Task SasUrlForBlob(string blobName)
+    {
+        blob.blobName = blobName;
+        var app = await http.PostAsJsonAsync<blobClass>("api/File/CreateImageSas", blob);
+
+        if(app.IsSuccessStatusCode)
+        {
+            result = (app.Content.ReadAsStringAsync()).Result;
+            Console.WriteLine(result);
+        }
+        else
+        {
+            Debug.WriteLine("HERE");
+        }
+
     }
 } 
