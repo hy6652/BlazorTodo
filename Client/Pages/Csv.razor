@@ -3,10 +3,17 @@
 @using BlazorTodo.Shared
 
 <h3>CSV Write</h3>
-<p><button @onclick=ClickForCSV>WRITE</button></p>
+<p><input type="text" @bind=fileName /></p>
+<p>
+<button @onclick=ClickForCSV>WRITE</button>
+<strong>@message</strong>
+</p>
 
 <h3>CSV Read</h3>
-<p><button @onclick=ReadCSV>READ</button></p>
+<p>
+<InputFile OnChange="SelectCsv"></InputFile>
+<button @onclick=ReadSelectedCsv>READ</button>
+</p>
 
 <table> 
     <thead>
@@ -17,9 +24,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (result != null)
+        @if (list != null)
         {
-            @foreach (var item in result)
+            @foreach (var item in list)
             {
                 <tr>
                     <td style="width: 100px">@item.Id</td>
@@ -33,6 +40,12 @@
 
 @code {
     private CsvModel[]? result;
+    private List<CsvModel>? list;
+    private string message = "Uploading...";
+    private string fileName;
+    private Stream stream;
+    private string selectedFileName;
+    private IBrowserFile file;
 
     public async Task ClickForCSV()
     {
@@ -50,17 +63,50 @@
             new CsvModel { Id = 10, Movie = "Spider Man", Rating = 2}
         };
 
-        var data = JsonContent.Create(records);
-        var result = await http.PostAsync("api/Csv/WriteCsv", data);
-
-        if (result.IsSuccessStatusCode)
+        var data = new CsvDto
         {
-            Console.WriteLine(result);
+            Records = records,
+            FileName = fileName
+        };
+
+        var jsonContent = JsonContent.Create(data);
+        var httpResult = await http.PostAsync("api/Csv/WriteCsv", jsonContent);
+
+        if (httpResult.IsSuccessStatusCode)
+        {
+            message = "Success!";
+            fileName = string.Empty;
+        }
+        else
+        {
+            message = "Fail";
         }
     }
 
+    // click and read a specific csv file
     public async Task ReadCSV()
     {
         result = await http.GetFromJsonAsync<CsvModel[]>("api/Csv/ReadCsv");
+    }
+
+    // choose csv file and read it
+    public void SelectCsv(InputFileChangeEventArgs e)
+    {
+        stream = e.File.OpenReadStream();
+        selectedFileName = e.File.Name;
+    }
+
+    public async Task ReadSelectedCsv()
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(stream), "file", selectedFileName}
+        };
+
+        var httpResult = await http.PostAsync("api/Csv/ReadSelectedCsv", content);
+        if (httpResult.IsSuccessStatusCode)
+        {
+            list = await httpResult.Content.ReadFromJsonAsync<List<CsvModel>>();
+        }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BlazorTodo.Server.Services;
-using CsvHelper;
-using System.Globalization;
 using System.Diagnostics;
 using BlazorTodo.Shared;
 
@@ -19,9 +17,9 @@ namespace BlazorTodo.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> WriteCsv(List<CsvModel> data)
+        public async Task<ActionResult> WriteCsv([FromBody] CsvDto csvDto)
         {
-            var result = await _csvService.WriteCsv(data);
+            await _csvService.WriteCsv(csvDto);
             return Ok();
         }
 
@@ -29,6 +27,13 @@ namespace BlazorTodo.Server.Controllers
         public async Task<ActionResult<List<CsvModel>>> ReadCsv()
         {
             var result = await _csvService.ReadCsv();
+            return result;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<List<CsvModel>>> ReadSelectedCsv([FromForm] IFormFile file)
+        {
+            var result = await _csvService.ReadSelectedCsv(file);
             return result;
         }
     }

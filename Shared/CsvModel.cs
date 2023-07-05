@@ -11,4 +11,10 @@ namespace BlazorTodo.Shared
         [Name("rating")]
         public double Rating { get; set; }
     }
+
+    public class CsvDto
+    {
+        public List<CsvModel> Records { get; set; }
+        public string FileName { get; set; }
+    }
 }

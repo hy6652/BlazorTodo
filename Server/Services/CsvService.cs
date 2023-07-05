@@ -10,31 +10,51 @@ namespace BlazorTodo.Server.Services
         private readonly string filePath;
         public CsvService()
         {
-            filePath = "C:\\Users\\고현영\\Desktop\\Blazor\\Server\\Services\\MovieList.csv";
+            filePath = "C:\\Users\\고현영\\Desktop\\Blazor\\Server\\Services\\";
         }
-        public async Task<string> WriteCsv(List<CsvModel> records)
+
+        public async Task WriteCsv(CsvDto dto)
         {
-            using (var writer = new StreamWriter(filePath))
+            var records = dto.Records;
+            var fileName = dto.FileName;
+
+            var path = filePath + fileName;
+            using (var writer = new StreamWriter(path))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(records);
-                writer.Flush();
             }
-
-            string success = "SUCCESS";
-            return success;
         }
 
         public async Task<List<CsvModel>> ReadCsv()
         {
             List<CsvModel> data = new List<CsvModel>();
 
-            using (var reader = new StreamReader(filePath))
+            var file = filePath + "MovieList.csv";
+            using (var reader = new StreamReader(file))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 csv.Read();
                 csv.ReadHeader();
                 while(csv.Read())
+                {
+                    var record = csv.GetRecord<CsvModel>();
+                    data.Add(record);
+                }
+            }
+            return data;
+        }
+
+        public async Task<List<CsvModel>> ReadSelectedCsv(IFormFile file)
+        {
+            List<CsvModel> data = new List<CsvModel>();
+
+            using (var reader = new StreamReader(file.OpenReadStream()))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csv.Read();
+                csv.ReadHeader();
+                while (csv.Read())
                 {
                     var record = csv.GetRecord<CsvModel>();
                     data.Add(record);
