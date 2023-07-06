@@ -1,5 +1,4 @@
 using BlazorTodo.Server.Services;
-using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,6 +2,7 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace BlazorTodo.Server.Services
 {
@@ -57,7 +58,6 @@ namespace BlazorTodo.Server.Services
                 return null;
             }
         }
-
 
         public static async Task AddModel<T>(this Container container, T model) where T : CosmosModelBase
         {
@@ -120,7 +120,7 @@ namespace BlazorTodo.Server.Services
                 .AsQueryable();
         }
 
-        public static async Task<List<T>> GetListFromFeedIteratorAsync<T>(this IQueryable<T> query) where T : CosmosModelBase
+        public static async Task<List<T>> GetListFromFeedIteratorAsync<T>(this IQueryable<T> query) 
         {
             var result = new List<T>();
             using (var iterator = query.ToFeedIterator())
@@ -150,6 +150,36 @@ namespace BlazorTodo.Server.Services
             return container.GetItemLinqQueryable<T>()
                 .Where(x => x.Title.Contains(title, StringComparison.OrdinalIgnoreCase))
                 .AsQueryable();
+        }
+
+        // csv upload with CommonModel
+        public static async Task<List<T>> UploadCsvWithCommonModel<T> (this Container container, List<T> model) where T : CsvItem
+        {
+            List<T> result = new List<T>();
+            foreach (var item in model)
+            {
+                var response = await container.CreateItemAsync(item, new PartitionKey(item.Pk));
+                result.Add(response.Resource);
+            }
+            return result;
+        }
+
+        // return all csv
+        public static IQueryable<T> GetCsvByClassType<T> (this Container container) where T : CsvItem
+        {
+            return container.GetItemLinqQueryable<T>()
+                .Where(x => x.ClassType == "CsvItem")
+                .AsQueryable();
+        }
+
+        public static IQueryable<T> GetCsvByTitle<T>(this Container container, string  csvTitle) where T : CsvItem
+        {
+            //return container.GetItemLinqQueryable<T>()
+            //    .Where(x => x.ClassType == "CsvItem" & x.Title == csvTitle)
+            //    .AsQueryable();
+
+            return container.GetCsvByClassType<T>()
+                .Where(x => x.Title == csvTitle);
         }
     }
 }

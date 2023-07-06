@@ -1,4 +1,5 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using BlazorTodo.Base;
+using CsvHelper.Configuration.Attributes;
 
 namespace BlazorTodo.Shared
 {
@@ -16,5 +17,16 @@ namespace BlazorTodo.Shared
     {
         public List<CsvModel> Records { get; set; }
         public string FileName { get; set; }
+    }
+
+    public class CsvItem : CommonModel
+    {
+        public override string ClassType => nameof(CsvItem);
+        public string BlobUrl { get; set; }
+    }
+
+    public class BlobTitleModel
+    {
+        public string Title { get; set; }
     }
 }

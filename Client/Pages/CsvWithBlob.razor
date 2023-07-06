@@ -1,0 +1,106 @@
+﻿@page "/csvBlob"
+@inject HttpClient http
+@using BlazorTodo.Shared
+
+<h3>Upload Csv to Blob Storage</h3>
+<p>
+    <InputFile OnChange="SelectCsvToUpload"></InputFile>
+    <button @onclick=UploadCsvToBlob>ADD</button>
+    <strong>@messageForUploading</strong>
+</p>
+
+@*@if (csvResult != null)
+{
+    <li>@csvResult.First().Title</li>
+}*@
+
+<p>
+<h3>Download All Csv</h3>
+<button @onclick=DownlaodAllCsv>CSV Download</button>
+</p>
+
+<p>
+<h3>Download One Csv</h3>
+@if (csvTitles != null)
+{
+    @messageForDownloading
+    @foreach (var csv in csvTitles)
+    {
+        <ul>
+            <li>
+                <button @onclick="() => DownloadOneCsv(csv.Title)">Download</button>
+                @csv.Title
+            </li>
+        </ul>
+
+    }
+}
+</p>
+
+@code {
+    private Stream streamForBlob;
+    private string selectedFileNameForblob;
+    private string messageForUploading = "Uploading...";
+    private List<CsvItem>? csvResult;
+    private List<BlobTitleModel> csvTitles;
+    private string messageForDownloading = "Ready to Download";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAllCsvTitle();
+    }
+
+    public async Task GetAllCsvTitle()
+    {
+        csvTitles = await http.GetFromJsonAsync<List<BlobTitleModel>>("api/File/GetAllCsvTitle");
+    }
+
+    public void SelectCsvToUpload(InputFileChangeEventArgs e)
+    {
+        streamForBlob = e.File.OpenReadStream();
+        selectedFileNameForblob = e.File.Name;
+    }
+
+    public async Task UploadCsvToBlob()
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(streamForBlob), "file", selectedFileNameForblob }
+        };
+
+        var result = await http.PostAsync("api/File/UploadCsv", content);
+        if (result.IsSuccessStatusCode)
+        {
+            messageForUploading = "Success!";
+            csvResult = await result.Content.ReadFromJsonAsync<List<CsvItem>>();
+        }
+        else
+        {
+            messageForUploading = "Fail";
+        }
+    }
+
+    public async Task DownlaodAllCsv()
+    {
+        await http.GetAsync("api/File/DownloadAllCsv");
+    }
+
+    public async Task DownloadOneCsv(string csvTitle)
+    {
+        BlobTitleModel blobModel = new()
+        {
+            Title = csvTitle
+        };
+
+        var result = await http.PostAsJsonAsync<BlobTitleModel>("api/File/DownloadOneCsvByTitle", blobModel);
+        if (result.IsSuccessStatusCode)
+        {
+            messageForDownloading = "Downloaded Successfully!";
+        }
+        else
+        {
+            messageForDownloading = "Failed to Download";
+        }
+    }
+}
