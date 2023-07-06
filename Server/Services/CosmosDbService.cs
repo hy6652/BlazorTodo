@@ -174,10 +174,6 @@ namespace BlazorTodo.Server.Services
 
         public static IQueryable<T> GetCsvByTitle<T>(this Container container, string  csvTitle) where T : CsvItem
         {
-            //return container.GetItemLinqQueryable<T>()
-            //    .Where(x => x.ClassType == "CsvItem" & x.Title == csvTitle)
-            //    .AsQueryable();
-
             return container.GetCsvByClassType<T>()
                 .Where(x => x.Title == csvTitle);
         }

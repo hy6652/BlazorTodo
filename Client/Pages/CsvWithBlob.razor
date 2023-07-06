@@ -9,21 +9,16 @@
     <strong>@messageForUploading</strong>
 </p>
 
-@*@if (csvResult != null)
-{
-    <li>@csvResult.First().Title</li>
-}*@
-
 <p>
-<h3>Download All Csv</h3>
+<h3>Download All Csvs</h3>
 <button @onclick=DownlaodAllCsv>CSV Download</button>
 </p>
 
 <p>
-<h3>Download One Csv</h3>
+<h3>Download a Csv</h3>
 @if (csvTitles != null)
 {
-    @messageForDownloading
+    <strong>@messageForDownloading</strong>
     @foreach (var csv in csvTitles)
     {
         <ul>
@@ -102,5 +97,5 @@
         {
             messageForDownloading = "Failed to Download";
         }
-    }
+    }   
 }

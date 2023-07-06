@@ -152,19 +152,6 @@ namespace BlazorTodo.Server.Services
             return result;
         }
 
-        // Download all csv from blob storage
-        public async Task DownloadCsv()
-        {
-            string filePath = @"C:\\Users\\고현영\\Downloads\\";
-            string containerName = "csvcontainer";
-
-            foreach (var blob in client.GetBlobContainerClient(containerNameForCsv).GetBlobs())
-            {
-                string blobName = blob.Name;
-                var blobClient = client.GetBlobContainerClient(containerNameForCsv).GetBlobClient(blobName);
-                await blobClient.DownloadToAsync(filePathToDownloadCsv + blobName);
-            }
-        }
 
         public async Task<List<BlobTitleModel>> GetAllCsvTitle()
         {
@@ -181,18 +168,32 @@ namespace BlazorTodo.Server.Services
             return titles;
         }
         
-        public async Task DownloadOneCsvByTitle(BlobTitleModel blobTitleModel)
+        // Download all csv from blob storage
+        public async Task DownloadCsv()
         {
-            string csvTitle = blobTitleModel.Title;
-            var result = await _container.GetCsvByTitle<CsvItem>(csvTitle).GetListFromFeedIteratorAsync();
-            string distinctTitle = result.First().Title;
-
             foreach (var blob in client.GetBlobContainerClient(containerNameForCsv).GetBlobs())
             {
                 string blobName = blob.Name;
-                var blobClient = client.GetBlobContainerClient(containerNameForCsv).GetBlobClient(distinctTitle);
-                await blobClient.DownloadToAsync(filePathToDownloadCsv + distinctTitle);
+                var blobClient = client.GetBlobContainerClient(containerNameForCsv).GetBlobClient(blobName);
+                await blobClient.DownloadToAsync(filePathToDownloadCsv + blobName);
             }
+        }
+
+        public async Task DownloadOneCsvByTitle(BlobTitleModel blobTitleModel)
+        {
+            string csvTitle = blobTitleModel.Title;
+            var blobClient = client.GetBlobContainerClient(containerNameForCsv).GetBlobClient(csvTitle);
+            await blobClient.DownloadToAsync(filePathToDownloadCsv + csvTitle);
+        }
+
+        public async Task DownloadOneCsvFromCosmos(BlobTitleModel blobTitleModel)
+        {
+            string csvTitle = blobTitleModel.Title;
+            IEnumerable<CsvItem> csvList = await _container.GetCsvByTitle<CsvItem>(csvTitle).GetListFromFeedIteratorAsync();
+
+            var blobUrl = csvList.Select(x => x.BlobUrl).First().ToString();
+            BlobClient blobClient = new BlobClient(new Uri(blobUrl));
+            await blobClient.DownloadToAsync(filePathToDownloadCsv + csvTitle);
         }
 
         // Blob Service SAS
@@ -233,11 +234,9 @@ namespace BlazorTodo.Server.Services
         }
 
         // Get Container SAS
-        public Uri GetContainerSASUri(string storedPolicyName = null)
+        public Uri GetContainerSASUri(string containerName, string storedPolicyName = null)
         {
-            string containerName = "csvcontainer";
             var container = client.GetBlobContainerClient(containerName);
-
 
             // Check whether this BlobContainerClient object has been authorized with Shared Key.
             if (container.CanGenerateSasUri)

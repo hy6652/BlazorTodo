@@ -43,12 +43,12 @@ namespace BlazorTodo.Server.Controllers
             return sasUri.AbsoluteUri;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<string>> GetCsvContainerSas()
-        {
-            var sasUri = _blobService.GetContainerSASUri();
-            return sasUri.AbsoluteUri;
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<string>> GetCsvContainerSas()
+        //{
+        //    var sasUri = _blobService.GetContainerSASUri();
+        //    return sasUri.AbsoluteUri;
+        //}
 
         [HttpPost]
         public async Task<ActionResult> UploadCsv([FromForm] IFormFile file)
@@ -72,10 +72,19 @@ namespace BlazorTodo.Server.Controllers
             await _blobService.DownloadCsv();
         }
 
+        // CsvTitle -> Blob download
         [HttpPost]
         public async Task<ActionResult> DownloadOneCsvByTitle(BlobTitleModel title)
         {
             await _blobService.DownloadOneCsvByTitle(title);
+            return Ok();
+        }
+
+        // CsvTitle -> get csv blob url from cosmos -> sas + url return
+        [HttpPost]
+        public async Task<ActionResult> DownloadOneCsvFromCosmos(BlobTitleModel title)
+        {
+            await _blobService.DownloadOneCsvFromCosmos(title);
             return Ok();
         }
     }
