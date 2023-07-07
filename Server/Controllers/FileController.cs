@@ -54,7 +54,7 @@ namespace BlazorTodo.Server.Controllers
         public async Task<ActionResult> UploadCsv([FromForm] IFormFile file)
         {
             Stream stream = file.OpenReadStream();
-            List<CsvModel> data = await _csvService.ReadSelectedCsv(file);
+            List<CsvModel> data = await _csvService.ReadSelectedCsv(stream);
             List<CsvItem> csvItem = await _blobService.UploadCsv(file, data);
             return Ok(csvItem);
         }
@@ -86,6 +86,13 @@ namespace BlazorTodo.Server.Controllers
         {
             await _blobService.DownloadOneCsvFromCosmos(title);
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<List<CsvModel>>> GetCsvFromBlobToReadCsv(BlobTitleModel title)
+        {
+            List<CsvModel> csvModel = await _blobService.GetCsvFromBlobToReadCsv(title);
+            return Ok(csvModel);
         }
     }
 }

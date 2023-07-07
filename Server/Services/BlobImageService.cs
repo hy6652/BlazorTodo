@@ -34,7 +34,9 @@ namespace BlazorTodo.Server.Services
         private readonly string containerNameForCsv;
         private readonly string filePathToDownloadCsv;
 
-        public BlobImageService(IOptions<BlobImageServiceOptions> options, CosmosDbService cosmosDbService)
+        private readonly CsvService _csvService;
+
+        public BlobImageService(IOptions<BlobImageServiceOptions> options, CosmosDbService cosmosDbService, CsvService csvService)
         {
             connectionString = options.Value.ConnectionString;
             containerName = options.Value.ContainerName;
@@ -46,6 +48,8 @@ namespace BlazorTodo.Server.Services
 
             containerNameForCsv = "csvcontainer";
             filePathToDownloadCsv = @"C:\\Users\\고현영\\Downloads\\";
+
+            _csvService = csvService;
         }
 
         public async Task<string> UploadImage(Stream stream, string fileName)
@@ -171,10 +175,11 @@ namespace BlazorTodo.Server.Services
         // Download all csv from blob storage
         public async Task DownloadCsv()
         {
-            foreach (var blob in client.GetBlobContainerClient(containerNameForCsv).GetBlobs())
+            BlobContainerClient containerClient = client.GetBlobContainerClient(containerNameForCsv);
+            foreach (var blob in containerClient.GetBlobs())
             {
                 string blobName = blob.Name;
-                var blobClient = client.GetBlobContainerClient(containerNameForCsv).GetBlobClient(blobName);
+                BlobClient blobClient = containerClient.GetBlobClient(blobName);
                 await blobClient.DownloadToAsync(filePathToDownloadCsv + blobName);
             }
         }
@@ -194,6 +199,19 @@ namespace BlazorTodo.Server.Services
             var blobUrl = csvList.Select(x => x.BlobUrl).First().ToString();
             BlobClient blobClient = new BlobClient(new Uri(blobUrl));
             await blobClient.DownloadToAsync(filePathToDownloadCsv + csvTitle);
+        }
+
+        // get csv from blob storage, read the file with csvhelper to display
+        public async Task<List<CsvModel>> GetCsvFromBlobToReadCsv(BlobTitleModel blobTitleModel)
+        {
+            Uri containerSasUri = GetContainerSASUri(containerNameForCsv);
+            BlobContainerClient cotainerClient = new BlobContainerClient(containerSasUri);
+            BlobClient blobClient = cotainerClient.GetBlobClient(blobTitleModel.Title);
+
+            Stream stream = await blobClient.OpenReadAsync();
+            List<CsvModel> data = await _csvService.ReadSelectedCsv(stream);
+
+            return data;
         }
 
         // Blob Service SAS

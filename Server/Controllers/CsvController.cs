@@ -33,7 +33,8 @@ namespace BlazorTodo.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<List<CsvModel>>> ReadSelectedCsv([FromForm] IFormFile file)
         {
-            var result = await _csvService.ReadSelectedCsv(file);
+            Stream stream = file.OpenReadStream();
+            var result = await _csvService.ReadSelectedCsv(stream);
             return result;
         }
     }

@@ -45,11 +45,11 @@ namespace BlazorTodo.Server.Services
             return data;
         }
 
-        public async Task<List<CsvModel>> ReadSelectedCsv(IFormFile file)
+        public async Task<List<CsvModel>> ReadSelectedCsv(Stream stream)
         {
             List<CsvModel> data = new List<CsvModel>();
 
-            using (var reader = new StreamReader(file.OpenReadStream()))
+            using (var reader = new StreamReader(stream))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
                 csv.Read();
