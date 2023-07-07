@@ -7,15 +7,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+// options
 builder.Services.Configure<CosmosDbServiceOptions>(builder.Configuration.GetSection("CosmosDb"));
 builder.Services.AddSingleton<CosmosDbService>();
 
 builder.Services.Configure<BlobImageServiceOptions>(builder.Configuration.GetSection("BlobServiceOptions"));
 builder.Services.AddTransient<BlobImageServiceOptions>();
 
+// Service.cs
 builder.Services.AddTransient<TodoService>();
 builder.Services.AddTransient<BlobImageService>();
 builder.Services.AddTransient<CsvService>();
+builder.Services.AddTransient<RegexService>();
 
 var app = builder.Build();
 
