@@ -16,10 +16,10 @@ namespace BlazorTodo.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<List<string>>> CheckEmailRegex(RegexModel regexModel)
+        public async Task<ActionResult<List<string>>> CheckText(RegexModel regexModel)
         { 
             string text = regexModel.Text;
-            List<string> data = await _regexService.CheckText(text);
+            List<string> data =  _regexService.CheckText(text);
             return Ok(data);
         }
     }
