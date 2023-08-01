@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using BlazorTodo.Shared
+@inject HttpClient http
 
 <PageTitle>Index</PageTitle>
 
@@ -7,3 +9,20 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@foreach (var item in users)
+{
+    <div>
+        @item.Name
+        @item.DateOfBirth
+    </div>
+}
+
+@code{
+    private List<User> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await http.GetFromJsonAsync<List<User>>("api/UserDi/GetAll");
+    }
+}

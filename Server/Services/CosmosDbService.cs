@@ -71,8 +71,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(model.Pk));
             }
 
-            // TODO: Exception 추가
-            await container.CreateItemAsync(model, new PartitionKey(model.Pk));
+            try
+            {
+                await container.CreateItemAsync(model, new PartitionKey(model.Pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static async Task EditModel<T>(this Container container, T model) where T : CosmosModelBase
@@ -87,8 +93,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(model.Pk));
             }
 
-            // TODO: Exception 추가
-            await container.UpsertItemAsync(model, new PartitionKey(model.Pk));
+            try
+            {
+               await container.UpsertItemAsync(model, new PartitionKey(model.Pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static async Task RemoveModel<T>(this Container container, string id, string pk) where T : CosmosModelBase
@@ -103,8 +115,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(pk));
             }
 
-            // TODO: Exception 추가
-            await container.DeleteItemAsync<T>(id, new PartitionKey(pk));
+            try
+            {
+                await container.DeleteItemAsync<T>(id, new PartitionKey(pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static IQueryable<T> OfCosmosItemType<T>(this IQueryable<T> query) where T : CosmosModelBase

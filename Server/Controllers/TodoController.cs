@@ -17,6 +17,7 @@ namespace BlazorTodo.Server.Controllers
             _blobService = blobService;
         }
 
+        // cosmos
         [HttpGet]
         public async Task<ActionResult<List<TodoItem>>> GetAllTodo()
         {

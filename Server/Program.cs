@@ -1,4 +1,5 @@
 using BlazorTodo.Server.Services;
+using BlazorTodo.Server.Services.DIexample;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddTransient<TodoService>();
 builder.Services.AddTransient<BlobImageService>();
 builder.Services.AddTransient<CsvService>();
 builder.Services.AddTransient<RegexService>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
