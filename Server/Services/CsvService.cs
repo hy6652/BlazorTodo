@@ -10,7 +10,7 @@ namespace BlazorTodo.Server.Services
         private readonly string filePath;
         public CsvService()
         {
-            filePath = "C:\\Users\\고현영\\Desktop\\Blazor\\Server\\Services\\";
+            filePath = "C:\\Users\\고현영\\Desktop\\Personal\\Blazor\\Server\\Services\\";
         }
 
         public async Task WriteCsv(CsvDto dto)
@@ -30,7 +30,7 @@ namespace BlazorTodo.Server.Services
         {
             List<CsvModel> data = new List<CsvModel>();
 
-            var file = filePath + "MovieList.csv";
+            var file = filePath + "Movie.csv";
             using (var reader = new StreamReader(file))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {

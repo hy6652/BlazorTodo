@@ -1,5 +1,6 @@
 using BlazorTodo.Server.Services;
 using BlazorTodo.Server.Services.DIexample;
+using BlazorTodo.Server.Services.DIexampleWithCommonModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddTransient<BlobImageService>();
 builder.Services.AddTransient<CsvService>();
 builder.Services.AddTransient<RegexService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient(typeof(ICommonRepository<>), typeof(CommonRepository<>));
 
 var app = builder.Build();
 
