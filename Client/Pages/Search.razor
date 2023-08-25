@@ -1,0 +1,53 @@
+﻿@page "/search"
+@inject HttpClient http
+@using System.Net.Http.Headers
+@using BlazorTodo.Shared
+
+<p>
+<input placeholder="Question" @bind=Question />
+<button @onclick=SearchAsync>Click</button>
+</p>
+
+<p>
+    <h3>Display</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 150px">Name</th>
+                <th style="width: 100px">Type1</th>
+                <th style="width: 100px">Type2</th>
+                <th style="width: 300px">FirstEmenrgence</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (result != null)
+            {
+                @foreach (var item in result)
+                {
+                    <tr>
+                        <td style="width: 100px">@item.block.Name</td>
+                        <td style="width: 150px">@item.block.Type1</td>
+                        <td style="width: 100px">@item.block.Type2</td>
+                        <td style="width: 300px">@item.block.FirstEmenrgence</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</p>
+
+@code {
+    private string Question;
+    private SearchMessage message = new();
+    private List<SearchResult>? result;
+
+    public async Task SearchAsync()
+    {
+        message.Question = Question;
+        var response = await http.PostAsJsonAsync<SearchMessage>("api/BlobTest/Search", message);
+        if (response.IsSuccessStatusCode)
+        {
+            result = await response.Content.ReadFromJsonAsync<List<SearchResult>>();
+        }
+    }
+}

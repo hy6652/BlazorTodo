@@ -16,6 +16,12 @@ builder.Services.AddSingleton<CosmosDbService>();
 builder.Services.Configure<BlobImageServiceOptions>(builder.Configuration.GetSection("BlobServiceOptions"));
 builder.Services.AddTransient<BlobImageServiceOptions>();
 
+builder.Services.Configure<BlobTestServiceOptions>(builder.Configuration.GetSection("BlobForTest"));
+builder.Services.AddTransient<BlobTestService>();
+
+builder.Services.Configure<CognitiveSearchServiceOption>(builder.Configuration.GetSection("CognitiveForTest"));
+builder.Services.AddTransient<CognitiveSearchService>();
+
 // Service.cs
 builder.Services.AddTransient<TodoService>();
 builder.Services.AddTransient<BlobImageService>();
