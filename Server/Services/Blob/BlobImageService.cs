@@ -4,8 +4,10 @@ using Microsoft.Extensions.Options;
 using Azure.Storage.Sas;
 using System.Diagnostics;
 using Microsoft.Azure.Cosmos;
+using BlazorTodo.Server.Services.Cosmos;
+using BlazorTodo.Server.Services.Utility;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Blob
 {
     public class FileDto
     {
@@ -152,7 +154,7 @@ namespace BlazorTodo.Server.Services
                 csvItems.Add(newItem);
             }
 
-            var result = await _container.UploadCsvWithCommonModel<CsvItem>(csvItems);
+            var result = await _container.UploadCsvWithCommonModel(csvItems);
             return result;
         }
 
@@ -171,7 +173,7 @@ namespace BlazorTodo.Server.Services
             }
             return titles;
         }
-        
+
         // Download all csv from blob storage
         public async Task DownloadCsv()
         {

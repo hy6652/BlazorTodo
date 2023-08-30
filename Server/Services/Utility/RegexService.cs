@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Utility
 {
     public class RegexService
     {

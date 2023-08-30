@@ -1,6 +1,10 @@
-using BlazorTodo.Server.Services;
+using BlazorTodo.Server.Services.Blob;
+using BlazorTodo.Server.Services.Cosmos;
 using BlazorTodo.Server.Services.DIexample;
 using BlazorTodo.Server.Services.DIexampleWithCommonModel;
+using BlazorTodo.Server.Services.Search;
+using BlazorTodo.Server.Services.Todo;
+using BlazorTodo.Server.Services.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 

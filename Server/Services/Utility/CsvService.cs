@@ -3,7 +3,7 @@ using CsvHelper;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Utility
 {
     public class CsvService
     {
@@ -36,7 +36,7 @@ namespace BlazorTodo.Server.Services
             {
                 csv.Read();
                 csv.ReadHeader();
-                while(csv.Read())
+                while (csv.Read())
                 {
                     var record = csv.GetRecord<CsvModel>();
                     data.Add(record);

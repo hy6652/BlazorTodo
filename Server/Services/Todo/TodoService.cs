@@ -1,7 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos;
 using BlazorTodo.Shared;
+using BlazorTodo.Server.Services.Cosmos;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Todo
 {
     public class TodoService
     {
@@ -25,7 +26,7 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentNullException("Title Needed");
             }
 
-            await _container.AddModel<TodoItem>(todo);
+            await _container.AddModel(todo);
         }
 
         // Read
@@ -37,7 +38,7 @@ namespace BlazorTodo.Server.Services
         // Update
         public async Task UpdateTodoAsync(TodoItem todo)
         {
-            await _container.EditModel<TodoItem>(todo);
+            await _container.EditModel(todo);
         }
 
         // Delete

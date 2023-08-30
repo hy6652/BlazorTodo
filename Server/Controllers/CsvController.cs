@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BlazorTodo.Server.Services;
 using System.Diagnostics;
 using BlazorTodo.Shared;
+using BlazorTodo.Server.Services.Utility;
 
 namespace BlazorTodo.Server.Controllers
 {

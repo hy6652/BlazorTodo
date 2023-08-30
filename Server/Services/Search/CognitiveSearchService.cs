@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Drawing.Text;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Search
 {
     public class CognitiveSearchServiceOption
     {
@@ -42,18 +42,18 @@ namespace BlazorTodo.Server.Services
         }
 
         // created index with semantic search
-        public async Task CreateIndex() 
+        public async Task CreateIndex()
         {
             //var analyzerName = LexicalAnalyzerName.KoMicrosoft;
-            
+
             SemanticSettings semanticSettings = new SemanticSettings();
             semanticSettings.Configurations.Add(new SemanticConfiguration
                 (
                     semanticConfig,
                     new PrioritizedFields()
                     {
-                        TitleField = new SemanticField { FieldName = "Name"},
-                        ContentFields = 
+                        TitleField = new SemanticField { FieldName = "Name" },
+                        ContentFields =
                         {
                             new SemanticField { FieldName = "Type1" },
                             new SemanticField { FieldName = "Type2" },
@@ -125,7 +125,7 @@ namespace BlazorTodo.Server.Services
 
             var response = await _searchClient.SearchAsync<SearchableBlock>(question, options);
             var result = response.Value.GetResults();
-             
+
             List<SearchResult> searchResult = new List<SearchResult>();
             foreach (var item in result)
             {

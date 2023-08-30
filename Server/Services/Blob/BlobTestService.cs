@@ -6,7 +6,7 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using BlazorTodo.Shared;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Blob
 {
     public class BlobTestServiceOptions
     {
@@ -137,7 +137,7 @@ namespace BlazorTodo.Server.Services
                             Type2 = values[2],
                             FirstEmenrgence = values[3],
                             Location = values[4].Split(",").ToList(),
-                            IsCaptured = values[5] 
+                            IsCaptured = values[5]
                         };
                         result.Add(block);
                     }
