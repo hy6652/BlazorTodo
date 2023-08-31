@@ -3,15 +3,16 @@ using BlazorTodo.Server.Services.Cosmos;
 using BlazorTodo.Server.Services.DIexample;
 using BlazorTodo.Server.Services.DIexampleWithCommonModel;
 using BlazorTodo.Server.Services.Search;
+using BlazorTodo.Server.Services.SignalR;
 using BlazorTodo.Server.Services.Todo;
 using BlazorTodo.Server.Services.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 // options
 builder.Services.Configure<CosmosDbServiceOptions>(builder.Configuration.GetSection("CosmosDb"));
@@ -31,6 +32,7 @@ builder.Services.AddTransient<TodoService>();
 builder.Services.AddTransient<BlobImageService>();
 builder.Services.AddTransient<CsvService>();
 builder.Services.AddTransient<RegexService>();
+builder.Services.AddTransient<ChatHub>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient(typeof(ICommonRepository<>), typeof(CommonRepository<>));
 
@@ -57,6 +59,7 @@ app.UseRouting();
 
 
 app.MapRazorPages();
+app.MapHub<ChatHub>("/Chat");
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
