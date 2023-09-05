@@ -15,17 +15,33 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1",
-        Title = "Todo",
-        Description = "ASP.NET Core app for Todo"
-    });
 
-    var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
+// Swashbuckle
+//builder.Services.AddSwaggerGen(options =>
+//{
+//    options.SwaggerDoc("v1", new OpenApiInfo
+//    {
+//        Version = "v1",
+//        Title = "Todo",
+//        Description = "ASP.NET Core app for Todo"
+//    });
+
+//    var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+//    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
+//});
+
+// NSwag
+builder.Services.AddOpenApiDocument(options =>
+{
+    options.PostProcess = document =>
+    {
+        document.Info = new NSwag.OpenApiInfo
+        {
+            Version = "v1",
+            Title = "Todo API",
+            Description = "ASP.NET Core app for Todo"
+        };
+    };
 });
 
 // options
@@ -56,8 +72,18 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
+    // Swashbuclke
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
+
+    //NSwag
+    app.UseOpenApi();
+    app.UseSwaggerUi3();
+    app.UseReDoc(options =>
+    {
+        options.Path = "/redoc";
+    });
 }
 else
 {
