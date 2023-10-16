@@ -17,32 +17,32 @@ builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
 // Swashbuckle
-//builder.Services.AddSwaggerGen(options =>
-//{
-//    options.SwaggerDoc("v1", new OpenApiInfo
-//    {
-//        Version = "v1",
-//        Title = "Todo",
-//        Description = "ASP.NET Core app for Todo"
-//    });
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Todo",
+        Description = "ASP.NET Core app for Todo"
+    });
 
-//    var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-//    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
-//});
+    var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFileName));
+});
 
 // NSwag
-builder.Services.AddOpenApiDocument(options =>
-{
-    options.PostProcess = document =>
-    {
-        document.Info = new NSwag.OpenApiInfo
-        {
-            Version = "v1",
-            Title = "Todo API",
-            Description = "ASP.NET Core app for Todo"
-        };
-    };
-});
+//builder.Services.AddOpenApiDocument(options =>
+//{
+//    options.PostProcess = document =>
+//    {
+//        document.Info = new NSwag.OpenApiInfo
+//        {
+//            Version = "v1",
+//            Title = "Todo API",
+//            Description = "ASP.NET Core app for Todo"
+//        };
+//    };
+//});
 
 // options
 builder.Services.Configure<CosmosDbServiceOptions>(builder.Configuration.GetSection("CosmosDb"));
@@ -74,16 +74,23 @@ if (app.Environment.IsDevelopment())
     app.UseWebAssemblyDebugging();
 
     // Swashbuclke
-    //app.UseSwagger();
-    //app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    // ±âº»ÀÌ api-docs
+    app.UseReDoc(c =>
+    {
+        c.RoutePrefix = "docs";
+        //c.SpecUrl("/v1/swagger.json");
+    });
 
     //NSwag
-    app.UseOpenApi();
-    app.UseSwaggerUi3();
-    app.UseReDoc(options =>
-    {
-        options.Path = "/redoc";
-    });
+    //app.UseOpenApi();
+    //app.UseSwaggerUi3();
+    //app.UseReDoc(options =>
+    //{
+    //    options.Path = "/redoc";
+    //});
 }
 else
 {
