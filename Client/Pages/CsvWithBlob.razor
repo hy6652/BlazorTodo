@@ -1,0 +1,159 @@
+﻿@page "/csvBlob"
+@inject HttpClient http
+@using BlazorTodo.Shared
+
+<h3>Upload Csv to Blob Storage</h3>
+<p>
+    <InputFile OnChange="SelectCsvToUpload"></InputFile>
+    <button @onclick=UploadCsvToBlob>ADD</button>
+    <strong>@messageForUploading</strong>
+</p>
+
+<p>
+<h3>Download All Csvs</h3>
+<button @onclick=DownlaodAllCsv>CSV Download</button>
+<strong>@messageForDownloadingAll</strong>
+</p>
+
+<p>
+<h3>Download a Csv</h3>
+@if (csvTitles != null)
+{
+    <p><strong>@messageForDownloading</strong></p>
+    @foreach (var csv in csvTitles)
+    {
+        <ul>
+            <li>
+                <button @onclick="() => DownloadOneCsv(csv.Title)">Download</button>
+                <button @onclick="() => DisplayCsv(csv.Title)">Display</button>
+                @csv.Title
+            </li>
+        </ul>
+
+    }
+}
+</p>
+
+<p>
+<h3>Display</h3>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 100px">Id</th>
+            <th style="width: 150px">Movie</th>
+            <th style="width: 100px">Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (csvContent != null)
+        {
+                @foreach (var item in csvContent)
+            {
+                <tr>
+                    <td style="width: 100px">@item.Id</td>
+                    <td style="width: 150px">@item.Movie</td>
+                    <td style="width: 100px">@item.Rating</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+</p>
+
+@code {
+    private Stream streamForBlob;
+    private string selectedFileNameForblob;
+    private string messageForUploading = "Uploading...";
+    private List<CsvItem>? csvResult;
+    private List<BlobTitleModel> csvTitles;
+    private string messageForDownloading = "Ready to Download";
+    private string messageForDownloadingAll = "Ready to Download";
+    private List<CsvModel>? csvContent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetAllCsvTitle();
+    }
+
+    public async Task GetAllCsvTitle()
+    {
+        csvTitles = await http.GetFromJsonAsync<List<BlobTitleModel>>("api/File/GetAllCsvTitle");
+    }
+
+    public void SelectCsvToUpload(InputFileChangeEventArgs e)
+    {
+        streamForBlob = e.File.OpenReadStream();
+        selectedFileNameForblob = e.File.Name;
+    }
+
+    public async Task UploadCsvToBlob()
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(streamForBlob), "file", selectedFileNameForblob }
+        };
+
+        var result = await http.PostAsync("api/File/UploadCsv", content);
+        if (result.IsSuccessStatusCode)
+        {
+            messageForUploading = "Success!";
+            csvResult = await result.Content.ReadFromJsonAsync<List<CsvItem>>();
+        }
+        else
+        {
+            messageForUploading = "Fail";
+        }
+
+        await GetAllCsvTitle();
+    }
+
+    public async Task DownlaodAllCsv()
+    {
+        var result = await http.GetAsync("api/File/DownloadAllCsv");
+        if (result.IsSuccessStatusCode)
+        {
+            messageForDownloadingAll = "Downloaded Successfully!";
+        }
+        else
+        {
+            messageForDownloadingAll = "Failed to Download";
+        }
+    }
+
+    public async Task DownloadOneCsv(string csvTitle)
+    {
+        BlobTitleModel blobModel = new()
+        {
+            Title = csvTitle
+        };
+
+        var result = await http.PostAsJsonAsync<BlobTitleModel>("api/File/DownloadOneCsvByTitle", blobModel);
+        if (result.IsSuccessStatusCode)
+        {
+            messageForDownloading = "Downloaded Successfully!";
+        }
+        else
+        {
+            messageForDownloading = "Failed to Download";
+        }
+
+    }   
+    public async Task DisplayCsv(string csvTitle)
+    {
+        if (csvContent != null)
+        {
+            csvContent.Clear();
+        }
+
+        BlobTitleModel blobModel = new()
+        {
+            Title = csvTitle
+        };
+
+        var result = await http.PostAsJsonAsync<BlobTitleModel>("api/File/GetCsvFromBlobToReadCsv", blobModel);
+        if (result.IsSuccessStatusCode)
+        {
+            csvContent = await result.Content.ReadFromJsonAsync<List<CsvModel>>();
+        }
+    }
+}

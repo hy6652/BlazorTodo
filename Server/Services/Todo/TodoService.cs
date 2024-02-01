@@ -1,7 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos;
 using BlazorTodo.Shared;
+using BlazorTodo.Server.Services.Cosmos;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Todo
 {
     public class TodoService
     {
@@ -20,7 +21,12 @@ namespace BlazorTodo.Server.Services
             todo.Id = Guid.NewGuid().ToString();
             todo.Pk = todo.Id;
 
-            await _container.AddModel<TodoItem>(todo);
+            if (todo.Title == null)
+            {
+                throw new ArgumentNullException("Title Needed");
+            }
+
+            await _container.AddModel(todo);
         }
 
         // Read
@@ -32,7 +38,7 @@ namespace BlazorTodo.Server.Services
         // Update
         public async Task UpdateTodoAsync(TodoItem todo)
         {
-            await _container.EditModel<TodoItem>(todo);
+            await _container.EditModel(todo);
         }
 
         // Delete

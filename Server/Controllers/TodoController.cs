@@ -1,4 +1,5 @@
-﻿using BlazorTodo.Server.Services;
+﻿using BlazorTodo.Server.Services.Blob;
+using BlazorTodo.Server.Services.Todo;
 using BlazorTodo.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +10,15 @@ namespace BlazorTodo.Server.Controllers
     public class TodoController : ControllerBase
     {
         private TodoService _todoService;
-        
-        public TodoController(TodoService todoService)
+        private BlobImageService _blobService;
+
+        public TodoController(TodoService todoService, BlobImageService blobService)
         {
             _todoService = todoService;
+            _blobService = blobService;
         }
 
+        // cosmos
         [HttpGet]
         public async Task<ActionResult<List<TodoItem>>> GetAllTodo()
         {
@@ -29,6 +33,23 @@ namespace BlazorTodo.Server.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<ActionResult<TodoItem>> CreateTodoWithImage([FromForm] FileDto dto)
+        {
+            var file = dto.file;
+            var todo = dto.todo;
+
+            Stream stream = file.OpenReadStream();
+            string fileName = file.FileName;
+
+            string urlString = await _blobService.UploadImage(stream, fileName);
+            todo.FileUrl = urlString;
+            todo.FileName = fileName;
+
+            await _todoService.CreateTodoAsync(todo);
+            return Ok();
+        }
+
         [HttpPatch]
         public async Task<ActionResult<TodoItem>> UpdateTodo(TodoItem todo)
         {
@@ -39,6 +60,8 @@ namespace BlazorTodo.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> DeleteTodo(TodoItem todo)
         {
+            string fileName = todo.FileName;
+            await _blobService.DeleteImage(fileName);
             await _todoService.DeleteTodoItemAsync(todo);
             return Ok();
         }

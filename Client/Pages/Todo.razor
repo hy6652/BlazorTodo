@@ -1,10 +1,21 @@
 ﻿@page "/todo"
 @using BlazorTodo.Shared
+@using System.Net.Http.Headers
+@using System.Text;
 @inject HttpClient http
+@using Newtonsoft.Json
+@using System.Diagnostics
+@using System.Net.Mime;
 
 <PageTitle>Todo</PageTitle>
 
 <h3>Todo</h3>
+
+<p>
+    <input placeholder="Something todo" @bind="@newTodo.Title" />
+    <InputFile OnChange="CreateTodoWithImage"></InputFile>
+    <button @onclick="UploadImage">Add todo</button>
+</p>
 
 @if (todos != null)
 {
@@ -21,15 +32,26 @@
     </ul>
 }
 
-<input placeholder="Something todo" @bind="@newTodo.Title" />
-<button @onclick="CreateTodo">Add todo</button>
+@if (imageData != null)
+{
+    foreach (var image in imageData)
+    {
+        <img src="@image" height="100" width="200">
+    }
+}
 
 
 @code {
     private TodoItem newTodo = new();
     private TodoItem[]? todos;
     TodoItem todo = new();
+    private Stream stream;
+    private string fileName;
+    blobClass blob = new();
+    private string? result;
+    private List<string> imageData = new();
 
+    // Create todo without an image
     public async Task CreateTodo()
     {
         var httpResult = await http.PostAsJsonAsync<TodoItem>("api/Todo/CreateTodo", newTodo);
@@ -41,7 +63,7 @@
         }
         else
         {
-            Console.WriteLine("FAIL");    
+            Console.WriteLine("FAIL");
         }
 
         await GetAllTodo();
@@ -64,7 +86,7 @@
         {
             Console.WriteLine("FAIL");
         }
-        
+
         await GetAllTodo();
     }
 
@@ -87,5 +109,87 @@
     public async Task GetAllTodo()
     {
         todos = await http.GetFromJsonAsync<TodoItem[]>("api/Todo/GetAllTodo");
+
+        foreach (var todo in todos)
+        {
+            result = await SasUrlForBlob(todo.FileName);
+            imageData.Add(result);
+        }
     }
-}
+
+    // Upload an image without todo
+    public async Task FileUpload(InputFileChangeEventArgs e)
+    {
+        var content = new MultipartFormDataContent();
+
+        var stream = e.File.OpenReadStream();
+        var fileNmame = e.File.Name;
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+        content.Add(
+            content: new StreamContent(stream),
+            name: "file", 
+            fileName: fileNmame);
+
+        var response = await http.PostAsync("api/File/UploadImage", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("FAIL");
+        }
+        else
+        {
+            Console.WriteLine("SUCCESS");
+        }
+    }
+
+    // Create todo and upload an image with CreateTodoWithImage and UploadImage at the same time
+    public void CreateTodoWithImage(InputFileChangeEventArgs e)
+    {
+        stream = e.File.OpenReadStream();
+        fileName = e.File.Name;
+    }
+
+    public async Task UploadImage()
+    {
+        var payload = new
+        {
+            Title = newTodo.Title
+        };
+
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(stream), "file", fileName},
+            { new StringContent(payload.Title), "todo.Title"}
+        };
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+
+        var response = await http.PostAsync("api/Todo/CreateTodoWithImage", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("FAIL");
+        }
+        else
+        {
+            Console.WriteLine("SUCCESS");
+            newTodo = new();
+        }
+
+        await GetAllTodo();
+    }
+
+    // Get image url + sas token
+    public async Task<string> SasUrlForBlob(string blobName)
+    {
+        blob.blobName = blobName;
+        var app = await http.PostAsJsonAsync<blobClass>("api/File/CreateImageSas", blob);
+
+        if(app.IsSuccessStatusCode)
+        {
+            return (app.Content.ReadAsStringAsync()).Result;
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+} 

@@ -1,0 +1,130 @@
+﻿@page "/chat"
+@inject NavigationManager nav
+@using BlazorTodo.Shared
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
+@* Youtube 참고 *@
+@* <div class="form-group">
+    <label>
+        User: <input @bind="userInput" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Message: <input @bind="messageInput" />
+    </label>
+</div>
+<button @onclick="Send" disabled="@(IsConnected == false)">Send</button>
+
+<hr />
+
+<ul>
+    @foreach (string message in messages)
+    {
+        <li>@message</li>
+    }
+</ul> *@
+
+<div class="form-group">
+    <label>
+        User: <input @bind="messageModel.nickName" />
+    </label>
+</div>
+<div class="form-group">
+    <label>
+        Message: <input @bind="messageModel.message" />
+    </label>
+</div>
+<button @onclick="Send" disabled="@(IsConnected == false)">Send</button>
+
+<hr />
+
+<ul>
+    @foreach (string message in messages)
+    {
+        <li>@message</li>
+    }
+</ul>
+
+@code {
+    // Youtube 참고
+    private HubConnection? hubConnection;
+    // private List<string> messages = new();
+    // private string? userInput;
+    // private string? messageInput;
+
+    // property 선언
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    // Youtube 참고
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     // 연결
+    //     hubConnection = new HubConnectionBuilder()
+    //         .WithUrl(nav.ToAbsoluteUri("/chat"))
+    //         .WithAutomaticReconnect()
+    //         .Build();
+
+    //     hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+    //     {
+    //         var formattedMessage = $"{user}: {message}";
+    //         messages.Add(formattedMessage);
+    //         InvokeAsync(StateHasChanged);
+    //     });
+
+    //     await hubConnection.StartAsync();
+    // }
+
+    // private async Task Send()
+    // {
+    //     if (hubConnection is not null)
+    //     {
+    //         // server쪽 SendMessage 메서드에 두 값을 전송
+    //         await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+    //     }
+    // }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    public MessageModel messageModel = new();
+    public List<string> messages = new();
+
+    // hub with MessageModel obj
+    protected override async Task OnInitializedAsync()
+    {
+        // 연결
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(nav.ToAbsoluteUri("/chat"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<MessageModel>("ReceiveMessageWithModel", async (model) =>
+        {
+            await FormatMessage(model);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    public async Task FormatMessage(MessageModel obj)
+    {
+        var formattedMessage = $"{obj.nickName}: {obj.message}";
+        messages.Add(formattedMessage);
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessageWithModel", messageModel);
+        }
+    }
+}

@@ -2,8 +2,9 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
-namespace BlazorTodo.Server.Services
+namespace BlazorTodo.Server.Services.Cosmos
 {
     public class CosmosDbServiceOptions
     {
@@ -58,7 +59,6 @@ namespace BlazorTodo.Server.Services
             }
         }
 
-
         public static async Task AddModel<T>(this Container container, T model) where T : CosmosModelBase
         {
             if (string.IsNullOrWhiteSpace(model.Id))
@@ -71,8 +71,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(model.Pk));
             }
 
-            // TODO: Exception 추가
-            await container.CreateItemAsync(model, new PartitionKey(model.Pk));
+            try
+            {
+                await container.CreateItemAsync(model, new PartitionKey(model.Pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static async Task EditModel<T>(this Container container, T model) where T : CosmosModelBase
@@ -87,8 +93,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(model.Pk));
             }
 
-            // TODO: Exception 추가
-            await container.UpsertItemAsync(model, new PartitionKey(model.Pk));
+            try
+            {
+                await container.UpsertItemAsync(model, new PartitionKey(model.Pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static async Task RemoveModel<T>(this Container container, string id, string pk) where T : CosmosModelBase
@@ -103,8 +115,14 @@ namespace BlazorTodo.Server.Services
                 throw new ArgumentException("Parameter cannot be null", nameof(pk));
             }
 
-            // TODO: Exception 추가
-            await container.DeleteItemAsync<T>(id, new PartitionKey(pk));
+            try
+            {
+                await container.DeleteItemAsync<T>(id, new PartitionKey(pk));
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public static IQueryable<T> OfCosmosItemType<T>(this IQueryable<T> query) where T : CosmosModelBase
@@ -120,7 +138,7 @@ namespace BlazorTodo.Server.Services
                 .AsQueryable();
         }
 
-        public static async Task<List<T>> GetListFromFeedIteratorAsync<T>(this IQueryable<T> query) where T : CosmosModelBase
+        public static async Task<List<T>> GetListFromFeedIteratorAsync<T>(this IQueryable<T> query)
         {
             var result = new List<T>();
             using (var iterator = query.ToFeedIterator())
@@ -139,7 +157,7 @@ namespace BlazorTodo.Server.Services
         public static IQueryable<T> FilterTodo<T>(this Container container, DateTime startDate, DateTime endDate, bool isDone) where T : TodoItem
         {
             DateTime endDatePlusOne = endDate.AddDays(1);
-            
+
             return container.GetItemLinqQueryable<T>()
                 .Where(x => x.CreatedTime >= startDate && x.CreatedTime <= endDatePlusOne && x.IsDone == isDone)
                 .AsQueryable();
@@ -150,6 +168,32 @@ namespace BlazorTodo.Server.Services
             return container.GetItemLinqQueryable<T>()
                 .Where(x => x.Title.Contains(title, StringComparison.OrdinalIgnoreCase))
                 .AsQueryable();
+        }
+
+        // csv upload with CommonModel
+        public static async Task<List<T>> UploadCsvWithCommonModel<T>(this Container container, List<T> model) where T : CsvItem
+        {
+            List<T> result = new List<T>();
+            foreach (var item in model)
+            {
+                var response = await container.CreateItemAsync(item, new PartitionKey(item.Pk));
+                result.Add(response.Resource);
+            }
+            return result;
+        }
+
+        // return all csv
+        public static IQueryable<T> GetCsvByClassType<T>(this Container container) where T : CsvItem
+        {
+            return container.GetItemLinqQueryable<T>()
+                .Where(x => x.ClassType == "CsvItem")
+                .AsQueryable();
+        }
+
+        public static IQueryable<T> GetCsvByTitle<T>(this Container container, string csvTitle) where T : CsvItem
+        {
+            return container.GetCsvByClassType<T>()
+                .Where(x => x.Title == csvTitle);
         }
     }
 }

@@ -1,0 +1,112 @@
+﻿@page "/csv"
+@inject HttpClient http
+@using BlazorTodo.Shared
+
+<h3>CSV Write</h3>
+<p><input type="text" @bind=fileName /></p>
+<p>
+<button @onclick=ClickForCSV>WRITE</button>
+<strong>@message</strong>
+</p>
+
+<h3>CSV Read</h3>
+<p>
+<InputFile OnChange="SelectCsv"></InputFile>
+<button @onclick=ReadSelectedCsv>READ</button>
+</p>
+
+<table> 
+    <thead>
+        <tr>
+            <th style="width: 100px">Id</th>
+            <th style="width: 150px">Movie</th>
+            <th style="width: 100px">Rating</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (list != null)
+        {
+            @foreach (var item in list)
+            {
+                <tr>
+                    <td style="width: 100px">@item.Id</td>
+                    <td style="width: 150px">@item.Movie</td>
+                    <td style="width: 100px">@item.Rating</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private CsvModel[]? result;
+    private List<CsvModel>? list;
+    private string message = "Uploading...";
+    private string fileName;
+    private Stream stream;
+    private string selectedFileName;
+    private IBrowserFile file;
+
+    public async Task ClickForCSV()
+    {
+        var records = new List<CsvModel>
+        {
+            new CsvModel { Id = 1, Movie = "Interstella", Rating = 3.5},
+            new CsvModel { Id = 2, Movie = "Pitch Perfect", Rating = 4},
+            new CsvModel { Id = 3, Movie = "Coco", Rating = 4.5},
+            new CsvModel { Id = 4, Movie = "About Time", Rating = 3},
+            new CsvModel { Id = 5, Movie = "The Godfatehr", Rating = 2.5},
+            new CsvModel { Id = 6, Movie = "Titanic", Rating = 4},
+            new CsvModel { Id = 7, Movie = "A Star Is Born", Rating = 3.5},
+            new CsvModel { Id = 8, Movie = "Pride and Prejudice", Rating = 3},
+            new CsvModel { Id = 9, Movie = "Mean Girls", Rating = 2.5},
+            new CsvModel { Id = 10, Movie = "Spider Man", Rating = 2}
+        };
+
+        var data = new CsvDto
+        {
+            Records = records,
+            FileName = fileName
+        };
+
+        var jsonContent = JsonContent.Create(data);
+        var httpResult = await http.PostAsync("api/Csv/WriteCsv", jsonContent);
+
+        if (httpResult.IsSuccessStatusCode)
+        {
+            message = "Success!";
+            fileName = string.Empty;
+        }
+        else
+        {
+            message = "Fail";
+        }
+    }
+
+    // click and read a specific csv file
+    public async Task ReadCSV()
+    {
+        result = await http.GetFromJsonAsync<CsvModel[]>("api/Csv/ReadCsv");
+    }
+
+    // choose csv file and read it
+    public void SelectCsv(InputFileChangeEventArgs e)
+    {
+        stream = e.File.OpenReadStream();
+        selectedFileName = e.File.Name;
+    }
+
+    public async Task ReadSelectedCsv()
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StreamContent(stream), "file", selectedFileName}
+        };
+
+        var httpResult = await http.PostAsync("api/Csv/ReadSelectedCsv", content);
+        if (httpResult.IsSuccessStatusCode)
+        {
+            list = await httpResult.Content.ReadFromJsonAsync<List<CsvModel>>();
+        }
+    }
+}
