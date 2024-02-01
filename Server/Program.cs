@@ -12,6 +12,7 @@ builder.Services.Configure<CosmosDbServiceOptions>(builder.Configuration.GetSect
 builder.Services.AddSingleton<CosmosDbService>();
 
 builder.Services.AddTransient<TodoService>();
+builder.Services.AddTransient<TestTaskService>();
 
 var app = builder.Build();
 
